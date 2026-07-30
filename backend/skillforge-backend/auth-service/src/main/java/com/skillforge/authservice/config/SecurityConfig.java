@@ -1,7 +1,7 @@
 package com.skillforge.authservice.config;
 
+import com.skillforge.authservice.security.filter.JwtAuthenticationFilter;
 import com.skillforge.authservice.security.userdetails.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,9 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Bean
@@ -27,27 +27,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public DaoAuthenticationProvider authenticationProvider(
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
 
-        http
-                .csrf(csrf -> csrf.disable())
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                .authorizeHttpRequests(auth -> auth
-
-                        .requestMatchers(
-                                "/auth/**",
-                                "/actuator/**"
-                        ).permitAll()
-
-                        .anyRequest()
-                        .authenticated()
-                );
-
-        return http.build();
+        return provider;
     }
 
     @Bean
@@ -59,17 +47,33 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(
-            CustomUserDetailsService service,
-            PasswordEncoder encoder) {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
 
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider();
+        http
+                .csrf(csrf -> csrf.disable())
 
-        provider.setUserDetailsService(service);
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-        provider.setPasswordEncoder(encoder);
+                .authenticationProvider(authenticationProvider)
 
-        return provider;
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/auth/**",
+                                "/actuator/**"
+                        ).permitAll()
+                        .anyRequest()
+                        .authenticated())
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
+        return http.build();
     }
 }

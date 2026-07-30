@@ -108,7 +108,7 @@ app:
   security:
     jwt:
       issuer: ${JWT_ISSUER:skillforge-auth-service}
-      secret: ${JWT_SECRET:change-this-development-secret-to-a-strong-production-secret}
+      secret: ${JWT_SECRET:4b4d4b63794d6b6f6b6b734c6f6e675365637265744b6579466f72536b696c6c466f72676532303236}
       access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:15m}
       refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:7d}
     password:
