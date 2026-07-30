@@ -45,15 +45,15 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 30)
     private UserStatus status;
 
-    @Column(nullable = false)
     @Builder.Default
+    @Column(nullable = false)
     private Boolean emailVerified = false;
 
-    @Column(nullable = false)
     @Builder.Default
+    @Column(nullable = false)
     private Boolean enabled = true;
 
-    @Column(nullable = false)
     @Builder.Default
+    @Column(nullable = false)
     private Boolean accountNonLocked = true;
 }
