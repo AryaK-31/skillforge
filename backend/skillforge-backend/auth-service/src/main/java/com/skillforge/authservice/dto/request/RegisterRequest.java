@@ -1,5 +1,6 @@
 package com.skillforge.authservice.dto.request;
 
+import com.skillforge.common.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -32,4 +33,6 @@ public class RegisterRequest {
             message = "Password must contain uppercase, lowercase, digit and special character"
     )
     private String password;
+
+    private Role role;
 }

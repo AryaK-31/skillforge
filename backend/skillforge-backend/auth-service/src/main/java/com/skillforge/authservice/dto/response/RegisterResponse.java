@@ -1,5 +1,6 @@
 package com.skillforge.authservice.dto.response;
 
+import com.skillforge.common.enums.Role;
 import lombok.*;
 
 import java.util.UUID;
@@ -16,4 +17,6 @@ public class RegisterResponse {
     private String email;
 
     private String message;
+
+    private Role role;
 }

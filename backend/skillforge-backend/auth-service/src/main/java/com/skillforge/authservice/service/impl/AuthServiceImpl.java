@@ -14,6 +14,8 @@ import com.skillforge.authservice.security.jwt.JwtService;
 import com.skillforge.authservice.service.interfaces.AuthService;
 import com.skillforge.authservice.dto.response.RegisterResponse;
 import com.skillforge.authservice.entity.User;
+import com.skillforge.authservice.util.RoleResolver;
+import com.skillforge.authservice.util.UserStatusResolver;
 import com.skillforge.common.enums.Role;
 
 import com.skillforge.common.enums.UserStatus;
@@ -39,6 +41,10 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthMapper authMapper;
 
+    private final UserStatusResolver userStatusResolver;
+
+    private final RoleResolver roleResolver;
+
     @Override
     public RegisterResponse register(RegisterRequest request) {
 
@@ -55,11 +61,16 @@ public class AuthServiceImpl implements AuthService {
                 passwordEncoder.encode(request.getPassword())
         );
 
-// Default role
-        user.setRole(Role.ROLE_LEARNER);
 
-// Default status
-        user.setStatus(UserStatus.ACTIVE);   // or PENDING_VERIFICATION later
+        Role role = roleResolver.resolveRole(
+                request.getRole()
+        );
+        user.setRole(role);
+
+// Initial Status
+        user.setStatus(
+                userStatusResolver.resolveInitialStatus(role)
+        );
 
 //// Save
 
@@ -67,6 +78,8 @@ public class AuthServiceImpl implements AuthService {
 
         return RegisterResponse.builder()
                 .userId(savedUser.getId())
+                .email(savedUser.getEmail())
+                .role(savedUser.getRole())
                 .message("User registered successfully")
                 .build();
     }
