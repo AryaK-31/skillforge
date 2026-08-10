@@ -1,5 +1,6 @@
 package com.skillforge.authservice.util;
 
+import com.skillforge.authservice.exception.EmailNotVerifiedException;
 import com.skillforge.common.enums.Role;
 import com.skillforge.common.enums.UserStatus;
 import org.springframework.stereotype.Component;
@@ -41,9 +42,10 @@ public class UserStatusResolver {
             }
 
             case PENDING_VERIFICATION ->
-                    throw new RuntimeException(
+                    throw new EmailNotVerifiedException(
                             "Please verify your email first."
                     );
+
 
             case INACTIVE ->
                     throw new RuntimeException(

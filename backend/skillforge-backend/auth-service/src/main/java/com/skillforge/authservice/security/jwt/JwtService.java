@@ -28,6 +28,27 @@ public class JwtService {
         );
     }
 
+    public String generateRefreshToken(UserDetails user) {
+
+        Date now = new Date();
+
+        Date expiry = new Date(
+                now.getTime() + properties.getRefreshTokenExpiration()
+        );
+
+        return Jwts.builder()
+
+                .subject(user.getUsername())
+
+                .issuedAt(now)
+
+                .expiration(expiry)
+
+                .signWith(getSigningKey())
+
+                .compact();
+    }
+
     public String generateAccessToken(UserDetails user) {
 
         Date now = new Date();
@@ -36,9 +57,17 @@ public class JwtService {
                 now.getTime() + properties.getAccessTokenExpiration()
         );
 
+        String authority = user.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .orElse("");
+
         return Jwts.builder()
 
                 .subject(user.getUsername())
+
+                .claim("role", authority)
 
                 .issuedAt(now)
 
@@ -81,5 +110,7 @@ public class JwtService {
 
                 .getPayload();
     }
+
+
 
 }

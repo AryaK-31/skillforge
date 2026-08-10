@@ -7,6 +7,7 @@ import com.skillforge.authservice.dto.request.RegisterRequest;
 import com.skillforge.authservice.dto.response.RegisterResponse;
 import com.skillforge.authservice.dto.response.TokenResponse;
 import com.skillforge.authservice.service.interfaces.AuthService;
+import com.skillforge.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +38,21 @@ public class AuthController {
             @Valid @RequestBody RefreshTokenRequest request) {
 
         return authService.refreshToken(request);
+    }
+
+    @GetMapping("/verify-email")
+    public String verifyEmail(
+            @RequestParam("email") String email) {
+
+        authService.verifyEmail(email);
+
+        return "Email verified successfully";
+    }
+
+    @PostMapping("/logout")
+    public void logout(
+            @RequestBody RefreshTokenRequest request) {
+
+        authService.logout(request.getRefreshToken());
     }
 }
