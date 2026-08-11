@@ -8,34 +8,38 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.springframework.http.HttpMethod;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
+    // =========================================================
+    // PASSWORD ENCODER
+    // =========================================================
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-
         return new BCryptPasswordEncoder();
     }
 
+
+    // =========================================================
+    // SECURITY FILTER CHAIN
+    // =========================================================
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -44,37 +48,90 @@ public class SecurityConfig {
 
         http
 
-                // REST API -> CSRF disabled
+                // JWT based API → disable CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // JWT -> no sessions
+                // No HTTP sessions
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public authentication endpoints
+                        // =====================================
+                        // PUBLIC AUTH APIs
+                        // =====================================
+
                         .requestMatchers(
                                 "/auth/register",
                                 "/auth/login",
                                 "/auth/refresh",
-                                "/auth/verify-email"
-                        ).permitAll()
-
-                        // Public actuator
-                        .requestMatchers(
+                                "/auth/verify-email",
+                                "/auth/logout",
                                 "/actuator/**"
                         ).permitAll()
 
-                        // Everything else requires JWT
-                        .anyRequest().authenticated()
+
+                        // =====================================
+                        // ADMIN
+                        // =====================================
+
+                        .requestMatchers(
+                                "/admin/**"
+                        ).hasAnyRole(
+                                "ADMIN",
+                                "SUPER_ADMIN"
+                        )
+
+
+                        // =====================================
+                        // SUPER ADMIN
+                        // =====================================
+
+                        .requestMatchers(
+                                "/super-admin/**"
+                        ).hasRole(
+                                "SUPER_ADMIN"
+                        )
+
+
+                        // =====================================
+                        // INSTRUCTOR
+                        // =====================================
+
+                        .requestMatchers(
+                                "/instructor/**"
+                        ).hasAnyRole(
+                                "INSTRUCTOR",
+                                "ADMIN",
+                                "SUPER_ADMIN"
+                        )
+
+
+                        // =====================================
+                        // LEARNER
+                        // =====================================
+
+                        .requestMatchers(
+                                "/learner/**"
+                        ).hasAnyRole(
+                                "LEARNER",
+                                "ADMIN",
+                                "SUPER_ADMIN"
+                        )
+
+
+                        // =====================================
+                        // EVERYTHING ELSE
+                        // =====================================
+
+                        .anyRequest()
+                        .authenticated()
                 )
 
-                // JWT filter
+                // JWT filter runs before username/password filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -84,6 +141,10 @@ public class SecurityConfig {
     }
 
 
+    // =========================================================
+    // AUTHENTICATION MANAGER
+    // =========================================================
+
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration)
@@ -92,6 +153,10 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
+
+    // =========================================================
+    // DAO AUTHENTICATION PROVIDER
+    // =========================================================
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider(

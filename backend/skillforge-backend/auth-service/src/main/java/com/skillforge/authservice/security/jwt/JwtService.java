@@ -33,7 +33,7 @@ public class JwtService {
         Date now = new Date();
 
         Date expiry = new Date(
-                now.getTime() + properties.getRefreshTokenExpiration()
+                now.getTime() + properties.getRefreshTokenExpiration().toMillis()
         );
 
         return Jwts.builder()
@@ -54,7 +54,7 @@ public class JwtService {
         Date now = new Date();
 
         Date expiry = new Date(
-                now.getTime() + properties.getAccessTokenExpiration()
+                now.getTime() + properties.getAccessTokenExpiration().toMillis()
         );
 
         String authority = user.getAuthorities()

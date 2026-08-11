@@ -1,6 +1,5 @@
 package com.skillforge.authservice.service.interfaces;
 
-
 import com.skillforge.authservice.dto.request.LoginRequest;
 import com.skillforge.authservice.dto.request.RefreshTokenRequest;
 import com.skillforge.authservice.dto.request.RegisterRequest;

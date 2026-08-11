@@ -1,21 +1,7 @@
 package com.skillforge.authservice.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,8 +12,7 @@ import java.util.UUID;
         indexes = {
                 @Index(
                         name = "idx_email_verification_token",
-                        columnList = "token",
-                        unique = true
+                        columnList = "token"
                 )
         }
 )
@@ -36,27 +21,27 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailVerificationToken extends BaseEntity {
+public class EmailVerificationToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = 100)
     private String token;
 
     @Column(nullable = false)
     private Instant expiryDate;
 
     @Column(nullable = false)
-    private boolean used;
+    @Builder.Default
+    private boolean used = false;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
             nullable = false,
-            unique = true,
-            foreignKey = @ForeignKey(name = "fk_email_verification_token_user")
+            unique = true
     )
     private User user;
 }
