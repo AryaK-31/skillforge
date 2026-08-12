@@ -10,12 +10,15 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -27,19 +30,12 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
-    // =========================================================
-    // PASSWORD ENCODER
-    // =========================================================
-
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
-
-    // =========================================================
-    // SECURITY FILTER CHAIN
-    // =========================================================
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -48,20 +44,39 @@ public class SecurityConfig {
 
         http
 
-                // JWT based API → disable CSRF
+                // REST API + JWT
                 .csrf(csrf -> csrf.disable())
 
-                // No HTTP sessions
+                // JWT authentication → no HTTP session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
+                // Security headers
+                .headers(headers -> headers
+
+                        .contentSecurityPolicy(csp ->
+                                csp.policyDirectives(
+                                        "default-src 'self'"
+                                )
+                        )
+
+                        .frameOptions(frame ->
+                                frame.deny()
+                        )
+
+                        .contentTypeOptions(
+                                contentType -> {
+                                }
+                        )
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // =====================================
-                        // PUBLIC AUTH APIs
+                        // PUBLIC AUTH ENDPOINTS
                         // =====================================
 
                         .requestMatchers(
@@ -69,8 +84,16 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/refresh",
                                 "/auth/verify-email",
-                                "/auth/logout",
-                                "/actuator/**"
+                                "/auth/logout"
+                        ).permitAll()
+
+
+                        // =====================================
+                        // ACTUATOR
+                        // =====================================
+
+                        .requestMatchers(
+                                "/actuator/health"
                         ).permitAll()
 
 
@@ -78,9 +101,8 @@ public class SecurityConfig {
                         // ADMIN
                         // =====================================
 
-                        .requestMatchers(
-                                "/admin/**"
-                        ).hasAnyRole(
+                        .requestMatchers("/admin/**")
+                        .hasAnyRole(
                                 "ADMIN",
                                 "SUPER_ADMIN"
                         )
@@ -90,20 +112,16 @@ public class SecurityConfig {
                         // SUPER ADMIN
                         // =====================================
 
-                        .requestMatchers(
-                                "/super-admin/**"
-                        ).hasRole(
-                                "SUPER_ADMIN"
-                        )
+                        .requestMatchers("/super-admin/**")
+                        .hasRole("SUPER_ADMIN")
 
 
                         // =====================================
                         // INSTRUCTOR
                         // =====================================
 
-                        .requestMatchers(
-                                "/instructor/**"
-                        ).hasAnyRole(
+                        .requestMatchers("/instructor/**")
+                        .hasAnyRole(
                                 "INSTRUCTOR",
                                 "ADMIN",
                                 "SUPER_ADMIN"
@@ -114,9 +132,8 @@ public class SecurityConfig {
                         // LEARNER
                         // =====================================
 
-                        .requestMatchers(
-                                "/learner/**"
-                        ).hasAnyRole(
+                        .requestMatchers("/learner/**")
+                        .hasAnyRole(
                                 "LEARNER",
                                 "ADMIN",
                                 "SUPER_ADMIN"
@@ -131,7 +148,7 @@ public class SecurityConfig {
                         .authenticated()
                 )
 
-                // JWT filter runs before username/password filter
+                // JWT filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -141,10 +158,6 @@ public class SecurityConfig {
     }
 
 
-    // =========================================================
-    // AUTHENTICATION MANAGER
-    // =========================================================
-
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration)
@@ -153,10 +166,6 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-
-    // =========================================================
-    // DAO AUTHENTICATION PROVIDER
-    // =========================================================
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider(

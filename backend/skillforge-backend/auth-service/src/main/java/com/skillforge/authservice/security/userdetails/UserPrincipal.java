@@ -38,7 +38,8 @@ public class UserPrincipal implements UserDetails {
 
         this.enabled = user.getEnabled();
 
-        this.accountNonLocked = user.getAccountNonLocked();
+        this.accountNonLocked =
+                user.getAccountNonLocked();
 
         this.authorities = List.of(
                 new SimpleGrantedAuthority(
@@ -48,19 +49,11 @@ public class UserPrincipal implements UserDetails {
     }
 
 
-    // =========================================================
-    // USERNAME
-    // =========================================================
-
     @Override
     public String getUsername() {
         return email;
     }
 
-
-    // =========================================================
-    // PASSWORD
-    // =========================================================
 
     @Override
     public String getPassword() {
@@ -68,19 +61,13 @@ public class UserPrincipal implements UserDetails {
     }
 
 
-    // =========================================================
-    // AUTHORITIES / ROLE
-    // =========================================================
-
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority>
+    getAuthorities() {
+
         return authorities;
     }
 
-
-    // =========================================================
-    // ACCOUNT STATUS
-    // =========================================================
 
     @Override
     public boolean isEnabled() {
